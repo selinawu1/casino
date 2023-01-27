@@ -99,6 +99,12 @@ class BinBuilder:
         12 possible bets / 36 outcomes
         """
         outcomes = []
+        for row in range(12):
+            n = 3 *row + 1
+            street = {n, n+1, n+2}
+            s = "-".join(str(x) for x in line)
+            for x in street:
+                outcomes.append([x, Outcome(f"Street {s}",  5)])
         return outcomes
 
     def lineBets(self):
