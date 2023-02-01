@@ -70,7 +70,9 @@ class BinBuilder:
     Each bin has 12-14 different ways that it can be a winner e.g. 1 can be straight, street, corner...
     Chapter 8, pages 53-58
     """
-
+    def __init__(self):
+      pass
+  
     def buildBins(self, wheel):
         pass
 
@@ -81,8 +83,14 @@ class BinBuilder:
         """
         outcomes = []
         for n in range(37):
-            outcomes.append([n, Outcome(n, 35)])
-        outcomes.append(Outcome(n, 35))
+            outcome = Outcome(f"{n}", 35)
+            outcomes.append(outcome)
+          
+            Wheel.addOutcome(n, outcome)
+          
+        outcomes.append(Outcome("00", 35))
+        Wheel.addOutcome(00, Outcome("00", 35))
+      
         return outcomes
 
     def splitBets(self):
@@ -102,9 +110,11 @@ class BinBuilder:
         for row in range(12):
             n = 3 *row + 1
             street = {n, n+1, n+2}
-            s = "-".join(str(x) for x in line)
+            s = "-".join(str(x) for x in street)
             for x in street:
-                outcomes.append([x, Outcome(f"Street {s}",  5)])
+                outcome = Outcome(f"Street {s}",  5)
+                outcomes.append(outcome)
+                Wheel.addOutcome(x, outcome)
         return outcomes
 
     def lineBets(self):
@@ -118,7 +128,10 @@ class BinBuilder:
             line = {n, n+1, n+2, n+3, n+4, n+5}
             l = "-".join(str(x) for x in line)
             for x in line:
-                outcomes.append([x, Outcome(f"Line {l}",  5)])
+                outcome = Outcome(f"Line {l}",  5)
+                outcomes.append(outcome)
+
+                Wheel.addOutcome(x, outcome)
         return outcomes
 
     def dozenBets(self):
@@ -145,9 +158,9 @@ class BinBuilder:
         return outcomes
 
 
+bb = BinBuilder()
+print(bb.straightBets())
+#print(bb.lineBets())
+#print(len(bb.straightBets()))
 
-bb= BinBuilder
-print(bb.straightBets(1))
-print(bb.lineBets(1))
-print(len(bb.straightBets(1)))
 
