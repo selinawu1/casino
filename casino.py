@@ -438,25 +438,79 @@ class IntegerStatistics(list):
     def stdev(self):
         m = self.mean()
         return math.sqrt(sum( (x-m)**2 for x in self) / (len(self)-1))
-
+    
 
 class PlayerRandom(Player):
+    """
+    Randomly place bets with a fixed initial stake.
+    Chapter 17, pages 99-100
+    """
     def __init__(self, table):
         super().__init__(table)
         self.rng = random.Random()
-        self.all_OC = set()
-
+        self.all_oc = list(table.wheel.all_outcomes)
+        s = len(self.all_oc)
+        u = random.randrange(0, s)
+        self.specificBet = self.all_oc[u]
 
     def placeBets(self):
+        self.nextBet = self.initialBet
         super().placeBets()
+
+
+class PlayerCancellation(Player):
+    """
+    Player bets an allocated series of numbers, each bet being the sum of the first and last number
+    Chapter 19, pages 109-110
+    """
+    def __init__(self, table):
+        super().__init__(table)
+        self.sequence = [1, 2, 3, 4, 5, 6]
+        self.initialBet = self.sequence[0] + self.sequence[-1]
+        self.outcome = "Black"
+        self.specificBet = table.wheel.getOutcome(self.outcome)
+
+    def placeBets(self):
+        if len(self.sequence) > 0:
+            self.nextBet = self.sequence[0] + self.sequence[-1]
+            super().placeBets()
+        else:
+            pass
+
+    def win(self, bet):
+        super().win(bet)
+        if len(self.sequence) > 1:
+            self.sequence.pop(0)
+            self.sequence.pop(-1)
+
+    def lose(self, bet):
+        super().lose(bet)
+        self.sequence.append(self.sequence[0] + self.sequence[-1])
+
+    def resetSequence(self):
+        self.sequence = [1, 2, 3, 4, 5, 6]
+
+    def reset(self):
+        super().reset()
+        self.resetSequence()
+
+
+class FibonacciPlayer(Player):
+    """
+    Player uses fibonacci sequence to structure their bets
+    Chapter 20, pages 111-112
+    """
+    def __init__(self, table):
+        super().__init__(table)
 
 
 rwheel = Wheel()
 rtable = Table(100, rwheel)
 rgame = RouletteGame(rwheel, rtable)
-rsim = Simulator(Martingale(rtable), rgame)
+rsim = Simulator(PlayerCancellation(rtable), rgame)
 maxima, duration = rsim.gather()
 print(maxima, len(maxima))
 print(duration, len(duration))
 stats = IntegerStatistics(maxima)
 print(stats.mean(), stats.stdev())
+
