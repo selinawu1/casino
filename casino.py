@@ -495,22 +495,61 @@ class PlayerCancellation(Player):
         self.resetSequence()
 
 
-class FibonacciPlayer(Player):
+class PlayerFibonacci(Player):
     """
     Player uses fibonacci sequence to structure their bets
     Chapter 20, pages 111-112
     """
     def __init__(self, table):
         super().__init__(table)
+        self.recent = 1
+        self.previous = 0
+        self.specificBet = table.wheel.getOutcome("Black")
+
+    def placeBets(self):
+        self.nextBet = self.recent + self.previous
+        super().placeBets()
+
+    def win(self, bet):
+        super().win(bet)
+        self.recent = 1
+        self.previous = 0
+
+    def lose(self, bet):
+        super().lose(bet)
+        self.previous = self.recent
+        self.recent += self.previous
+
+    def reset(self):
+        super().reset()
+        self.recent = 1
+        self.previous = 0
 
 
 rwheel = Wheel()
 rtable = Table(100, rwheel)
 rgame = RouletteGame(rwheel, rtable)
+rsim = Simulator(PlayerFibonacci(rtable), rgame)
+dictionary = {}
+maxima, duration = rsim.gather()
+#print(maxima, len(maxima))
+#print(duration, len(duration))
+stats = IntegerStatistics(maxima)
+dictionary["PlayerFibonacci"] = [stats.mean(), stats.stdev()]
+
+rsim = Simulator(PlayerRandom(rtable), rgame)
+maxima, duration = rsim.gather()
+stats = IntegerStatistics(maxima)
+dictionary["PlayerRandom"] = [stats.mean(), stats.stdev()]
+
+rsim = Simulator(Martingale(rtable), rgame)
+maxima, duration = rsim.gather()
+stats = IntegerStatistics(maxima)
+dictionary["Martingale"] = [stats.mean(), stats.stdev()]
+
 rsim = Simulator(PlayerCancellation(rtable), rgame)
 maxima, duration = rsim.gather()
-print(maxima, len(maxima))
-print(duration, len(duration))
 stats = IntegerStatistics(maxima)
-print(stats.mean(), stats.stdev())
+dictionary["PlayerCancellation"] = [stats.mean(), stats.stdev()]
 
+print(dictionary)
